@@ -3,6 +3,11 @@
 
   const content = document.getElementById("studentContent");
   const auth = window.FirstVoloStudentAuth;
+  const productLabels = Object.freeze({
+    "first-volo-story-builder": "Story Builder",
+    "first-volo-morphology": "Morphology",
+    "primo-volo": "Primo Volo"
+  });
 
   function escape(value) {
     return String(value || "").replace(/[&<>"']/g, char => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#039;" }[char]));
@@ -23,7 +28,7 @@
       if (result.status === "signed-in") {
         classInput.value = "";
         studentInput.value = "";
-        renderStudentHome(result.context);
+        await renderStudentHome(result.context);
         return;
       }
       studentInput.value = "";
@@ -42,8 +47,11 @@
     });
   }
 
-  function renderStudentHome(context) {
-    content.innerHTML = `<section class="card student-home"><p class="eyebrow">First Volo Learning</p><h2>Hi, ${escape(context.display_name)}!</h2><p>You’re signed in to First Volo.</p><div class="student-class"><span>Class</span><strong>${escape(context.class_name)}</strong></div><p>Your teacher will tell you which First Volo activity to open.</p><button id="studentSignOutButton" class="button button-secondary" type="button">Sign out</button></section>`;
+  async function renderStudentHome(context) {
+    const access = await auth.getStudentProductAccess();
+    const availableProducts = access.productKeys.filter(key => productLabels[key]).map(key => `<li>${escape(productLabels[key])} <span>— Coming next</span></li>`).join("");
+    const availability = availableProducts ? `<section class="student-products"><h3>Your First Volo activities</h3><p>Available from your teacher</p><ul>${availableProducts}</ul></section>` : '<section class="student-products"><h3>Your First Volo activities</h3><p>No activities are available yet.</p></section>';
+    content.innerHTML = `<section class="card student-home"><p class="eyebrow">First Volo Learning</p><h2>Hi, ${escape(context.display_name)}!</h2><p>You’re signed in to First Volo.</p><div class="student-class"><span>Class</span><strong>${escape(context.class_name)}</strong></div>${availability}<p>Your teacher will tell you which First Volo activity to open.</p><button id="studentSignOutButton" class="button button-secondary" type="button">Sign out</button></section>`;
     document.getElementById("studentSignOutButton").addEventListener("click", async () => {
       await auth.signOut();
       renderSignIn();
@@ -56,7 +64,7 @@
     if (current.error || !current.session) { renderSignIn(); return; }
     if (!auth.isAnonymousSession(current.session)) { renderEducatorSession(); return; }
     const linked = await auth.getStudentContext();
-    if (linked.context) { renderStudentHome(linked.context); return; }
+    if (linked.context) { await renderStudentHome(linked.context); return; }
     renderSignIn();
   }
 

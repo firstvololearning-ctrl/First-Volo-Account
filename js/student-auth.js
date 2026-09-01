@@ -29,6 +29,12 @@
     return { context: firstRow(result.data), error: null };
   }
 
+  async function getStudentProductAccess() {
+    const result = await client.rpc("get_student_product_access");
+    if (result.error) return { productKeys: [], error: result.error };
+    return { productKeys: (result.data || []).map(item => item.product_key), error: null };
+  }
+
   async function claimLogin(classCode, studentCode) {
     const existing = await getSession();
     if (existing.error) return { status: "unavailable", context: null };
@@ -52,5 +58,5 @@
     if (client) await client.auth.signOut();
   }
 
-  window.FirstVoloStudentAuth = { getSession, getStudentContext, isAnonymousSession, claimLogin, signOut };
+  window.FirstVoloStudentAuth = { getSession, getStudentContext, getStudentProductAccess, isAnonymousSession, claimLogin, signOut };
 }());

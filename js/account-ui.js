@@ -74,8 +74,18 @@
     return '<section class="security-section"><h3>Account Security</h3><p>Set or change your password for future sign-ins.</p><form id="passwordForm" class="sign-in-form"><label for="newPassword">New password</label><input id="newPassword" type="password" autocomplete="new-password" required><label for="confirmPassword">Confirm new password</label><input id="confirmPassword" type="password" autocomplete="new-password" required><button class="button button-secondary" type="submit">Save password</button><p id="passwordMessage" class="form-message" role="status" aria-live="polite"></p></form></section>';
   }
 
+  function renderClassStudentAccess(classItem, snapshot) {
+    const entitledKeys = new Set(snapshot.entitlements.map(item => item.product_key));
+    const enabledKeys = new Set(snapshot.classProductAccess.filter(item => item.class_id === classItem.id).map(item => item.product_key));
+    const products = window.FirstVoloAccountData.definitions.map(product => {
+      if (!entitledKeys.has(product.key)) return `<div class="class-product-row"><span>${escape(product.label)}</span><small>No active educator access</small></div>`;
+      return `<label class="class-product-row class-product-control"><span>${escape(product.label)}</span><input type="checkbox" data-class-product-access data-class-id="${escape(classItem.id)}" data-product-key="${escape(product.key)}"${enabledKeys.has(product.key) ? " checked" : ""}><span class="class-product-state">${enabledKeys.has(product.key) ? "Student access on" : "Student access off"}</span></label>`;
+    }).join("");
+    return `<section class="class-student-access" aria-label="Student access for ${escape(classItem.name)}"><h5>Student access</h5><div class="class-product-list">${products}</div><p class="form-message" data-class-access-message="${escape(classItem.id)}" role="status" aria-live="polite"></p></section>`;
+  }
+
   function renderClasses(snapshot) {
-    const classCards = snapshot.classes.length ? snapshot.classes.map(item => `<article class="management-item"><div><h4>${escape(item.name)}</h4><span class="item-label">Class Code</span><strong class="code-value">${escape(item.class_code)}</strong></div></article>`).join("") : '<p class="empty-state">No classes yet. Create your first class below.</p>';
+    const classCards = snapshot.classes.length ? snapshot.classes.map(item => `<article class="management-item"><div><h4>${escape(item.name)}</h4><span class="item-label">Class Code</span><strong class="code-value">${escape(item.class_code)}</strong></div>${renderClassStudentAccess(item, snapshot)}</article>`).join("") : '<p class="empty-state">No classes yet. Create your first class below.</p>';
     return `<section class="management-section" aria-labelledby="classesHeading"><div class="section-heading"><div><h3 id="classesHeading">My Classes</h3><p>Create a class and share its Class Code with your students.</p></div></div><div class="management-grid">${classCards}</div><details class="create-panel"><summary class="button button-secondary">Create class</summary><form id="createClassForm" class="compact-form"><label for="className">Class name</label><input id="className" type="text" maxlength="120" autocomplete="off" required><button class="button button-primary" type="submit">Create class</button><p id="createClassMessage" class="form-message" role="status" aria-live="polite"></p></form></details></section>`;
   }
 
@@ -108,6 +118,21 @@
   }
 
   function bindEducatorEvents() {
+    document.querySelectorAll("[data-class-product-access]").forEach(control => control.addEventListener("change", async () => {
+      const requestedState = control.checked;
+      const message = document.querySelector(`[data-class-access-message="${control.dataset.classId}"]`);
+      control.disabled = true;
+      message.textContent = "Saving student access…";
+      const result = await client.rpc("set_class_product_access", { p_class_id: control.dataset.classId, p_product_key: control.dataset.productKey, p_enabled: requestedState });
+      if (result.error) {
+        control.checked = !requestedState;
+        control.disabled = false;
+        message.textContent = "Student access could not be updated. Please try again.";
+        return;
+      }
+      await refreshSnapshot();
+    }));
+
     document.getElementById("createClassForm")?.addEventListener("submit", async event => {
       event.preventDefault();
       const input = document.getElementById("className");

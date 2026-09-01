@@ -37,6 +37,14 @@
 .management-grid { grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); }
 .management-item, .student-item { padding: 16px; border: 1px solid #d8e3ec; border-radius: 14px; background: #fbfdff; }
 .management-item h4, .student-item h4 { margin: 0 0 8px; }
+.class-student-access { margin-top: 18px; padding-top: 14px; border-top: 1px solid #e5edf3; }
+.class-student-access h5 { margin: 0 0 10px; font-size: .92rem; }
+.class-product-list { display: grid; gap: 9px; }
+.class-product-row { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 4px 10px; color: #173a64; font-size: .88rem; }
+.class-product-row small, .class-product-state { grid-column: 1 / -1; color: #6d8297; font-size: .78rem; }
+.class-product-control { grid-template-columns: max-content 18px; justify-content: start; cursor: pointer; }
+.class-product-control input { grid-column: 2; grid-row: 1; width: 18px; height: 18px; margin: 0; accent-color: #173a64; }
+.class-product-control .class-product-state { grid-row: 2; }
 .item-label, .login-status { display: block; color: #59728c; font-size: .88rem; }
 .login-helper { display: block; max-width: 440px; margin-top: 4px; color: #62798f; font-size: .84rem; line-height: 1.4; }
 .code-value { display: block; margin-top: 3px; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 1.05rem; letter-spacing: .08em; }
@@ -72,5 +80,10 @@
 .student-class { display: grid; gap: 4px; margin: 26px 0; padding: 18px; border-radius: 14px; background: #eef5fc; }
 .student-class span { color: #59728c; font-size: .88rem; font-weight: 700; text-transform: uppercase; }
 .student-class strong { font-size: 1.2rem; }
+.student-products { margin: 0 0 24px; padding: 18px; border: 1px solid #d8e3ec; border-radius: 14px; text-align: left; }
+.student-products h3 { margin-bottom: 5px; font-size: 1.05rem; }
+.student-products p { margin-bottom: 12px; color: #59728c; }
+.student-products ul { display: grid; gap: 8px; margin: 0; padding-left: 20px; }
+.student-products li span { color: #6d8297; font-size: .88rem; }
 @media (max-width: 560px) { .site-header { align-items: flex-start; flex-direction: column; } .product dl div { display: block; } .product dd { margin-top: 3px; text-align: left; } .student-item { align-items: stretch; flex-direction: column; } .student-actions { align-items: stretch; } .compact-form { grid-template-columns: 1fr; } .compact-form label, .compact-form .form-message { grid-column: auto; } .login-card dl div { grid-template-columns: 1fr; gap: 3px; } }
 @media print { body * { visibility: hidden; } #temporaryLoginCard, #temporaryLoginCard * { visibility: visible; } #temporaryLoginCard { position: absolute; inset: 0 auto auto 0; width: 100%; border: 1px solid #173a64; box-shadow: none; } .login-card-actions, #loginCardMessage, .temporary-warning { display: none; } }
