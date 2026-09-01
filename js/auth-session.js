@@ -52,7 +52,7 @@
     const result = await client.auth.signInWithPassword({ email, password });
     if (!result.error) {
       const destination = destinationForCurrentTarget();
-      if (destination) window.location.replace(destination);
+      window.location.replace(destination || "index.html");
     }
     return result;
   }
