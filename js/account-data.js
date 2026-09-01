@@ -1,6 +1,30 @@
 (function () {
   "use strict";
-  const definitions = Object.freeze([{ key: "first-volo-story-builder", label: "Story Builder" }, { key: "first-volo-morphology", label: "Morphology" }, { key: "primo-volo", label: "Primo Volo" }]);
-  async function getAccountSnapshot() { const user = await window.FirstVoloAccountAuth.ready(); const client = window.FirstVoloAccountSupabase?.client; if (!client) return { user: null, educatorProfile: null, entitlements: [], error: new Error("Auth unavailable") }; if (!user) return { user: null, educatorProfile: null, entitlements: [], error: null }; const [profile, entitlements] = await Promise.all([client.from("educator_profiles").select("display_name").eq("user_id", user.id).maybeSingle(), client.from("product_entitlements").select("product_key,access_type,status,starts_at,expires_at").eq("owner_user_id", user.id).in("product_key", definitions.map(item => item.key)).eq("status", "active")]); if (profile.error || entitlements.error) return { user, educatorProfile: profile.data || null, entitlements: [], error: profile.error || entitlements.error }; const now = Date.now(); return { user, educatorProfile: profile.data || null, entitlements: entitlements.data.filter(row => Date.parse(row.starts_at) <= now && Date.parse(row.expires_at) > now), error: null }; }
+
+  const definitions = Object.freeze([
+    { key: "first-volo-story-builder", label: "Story Builder" },
+    { key: "first-volo-morphology", label: "Morphology" },
+    { key: "primo-volo", label: "Primo Volo" }
+  ]);
+
+  async function getAccountSnapshot() {
+    const auth = window.FirstVoloAccountAuth;
+    const user = await auth.ready();
+    const client = window.FirstVoloAccountSupabase?.client;
+    if (!client) return { user: null, educatorProfile: null, entitlements: [], error: new Error("Auth unavailable") };
+    if (!user) return { user: null, educatorProfile: null, entitlements: [], error: null };
+    const [profile, entitlements] = await Promise.all([
+      client.from("educator_profiles").select("display_name").eq("user_id", user.id).maybeSingle(),
+      client.from("product_entitlements").select("product_key,access_type,status,starts_at,expires_at").eq("owner_user_id", user.id).in("product_key", definitions.map(item => item.key)).eq("status", "active")
+    ]);
+    const queryError = profile.error || entitlements.error;
+    if (queryError) {
+      await auth.handleSessionError(queryError);
+      return { user, educatorProfile: profile.data || null, entitlements: [], error: queryError };
+    }
+    const now = Date.now();
+    return { user, educatorProfile: profile.data || null, entitlements: entitlements.data.filter(row => Date.parse(row.starts_at) <= now && Date.parse(row.expires_at) > now), error: null };
+  }
+
   window.FirstVoloAccountData = { definitions, getAccountSnapshot };
 }());
