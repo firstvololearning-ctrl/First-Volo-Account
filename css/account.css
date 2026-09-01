@@ -19,7 +19,7 @@
 .readonly-note { margin: 24px 0 0; padding-top: 16px; border-top: 1px solid #e5edf3; color: #59728c; font-size: .9rem; }
 .error { border-color: #e6bcbc; color: #8c2e2e; }
 .sign-in-form { display: grid; gap: 10px; max-width: 480px; }
-.sign-in-form input { width: 100%; padding: 11px 12px; border: 1px solid #bfd0e4; border-radius: 10px; font: inherit; }
+.sign-in-form input, .compact-form input, .compact-form select { width: 100%; padding: 11px 12px; border: 1px solid #bfd0e4; border-radius: 10px; background: #fff; color: #173a64; font: inherit; }
 .button-primary { background: #173a64; color: #fff; }
 .secondary-auth-actions { display: flex; flex-wrap: wrap; gap: 12px 18px; margin-top: 18px; }
 .text-button { padding: 0; border: 0; background: transparent; color: #24578a; cursor: pointer; text-decoration: underline; }
@@ -28,4 +28,45 @@
 .security-section { margin-top: 30px; padding-top: 24px; border-top: 1px solid #e5edf3; }
 .security-section h3 { margin-bottom: 6px; }
 .security-section > p { color: #59728c; }
-@media (max-width: 560px) { .site-header { align-items: flex-start; flex-direction: column; } .product dl div { display: block; } .product dd { margin-top: 3px; text-align: left; } }
+.student-entry, .teacher-entry { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 24px; padding-top: 18px; border-top: 1px solid #e5edf3; }
+.student-entry a, .teacher-entry a { color: #24578a; font-weight: 700; }
+.management-section { margin-top: 30px; padding-top: 26px; border-top: 1px solid #e5edf3; }
+.section-heading h3 { margin-bottom: 6px; }
+.section-heading p, .student-item p { color: #59728c; }
+.management-grid, .student-list { display: grid; gap: 12px; }
+.management-grid { grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); }
+.management-item, .student-item { padding: 16px; border: 1px solid #d8e3ec; border-radius: 14px; background: #fbfdff; }
+.management-item h4, .student-item h4 { margin: 0 0 8px; }
+.item-label, .login-status { display: block; color: #59728c; font-size: .88rem; }
+.code-value { display: block; margin-top: 3px; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 1.05rem; letter-spacing: .08em; }
+.student-item { display: flex; align-items: center; justify-content: space-between; gap: 18px; }
+.student-item p { margin-bottom: 8px; }
+.student-actions { display: flex; align-items: flex-end; flex-direction: column; gap: 10px; }
+.danger-text { color: #8c2e2e; }
+.create-panel { margin-top: 16px; }
+.create-panel summary { display: inline-block; list-style: none; }
+.create-panel summary::-webkit-details-marker { display: none; }
+.compact-form { display: grid; grid-template-columns: minmax(180px, 1fr) auto; align-items: end; gap: 10px; max-width: 620px; margin-top: 16px; }
+.compact-form label, .compact-form .form-message { grid-column: 1 / -1; }
+.empty-state { color: #59728c; }
+.login-card { margin-bottom: 20px; padding: 26px; border: 2px solid #7ea8cf; border-radius: 18px; background: #fff; box-shadow: 0 12px 30px rgba(23,58,100,.1); }
+.login-card h3 { margin-bottom: 18px; }
+.login-card dl { display: grid; gap: 12px; margin: 0; }
+.login-card dl div { display: grid; grid-template-columns: 140px 1fr; gap: 16px; }
+.login-card dt { color: #59728c; }
+.login-card dd { margin: 0; font-weight: 700; }
+.login-card .code-value { margin: 0; }
+.student-code { font-size: 1.25rem; }
+.temporary-warning { margin: 20px 0; padding: 12px; border-radius: 10px; background: #fff6df; color: #704f00; }
+.login-card-actions { display: flex; flex-wrap: wrap; gap: 10px; }
+.student-content { width: min(620px, calc(100% - 36px)); }
+.student-auth-card { padding: clamp(24px, 6vw, 42px); }
+.student-auth-card .sign-in-form { max-width: none; }
+.student-auth-card input { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 1.05rem; letter-spacing: .08em; text-transform: uppercase; }
+.student-home { text-align: center; }
+.student-home h2 { margin-bottom: 8px; font-size: clamp(1.8rem, 6vw, 2.5rem); }
+.student-class { display: grid; gap: 4px; margin: 26px 0; padding: 18px; border-radius: 14px; background: #eef5fc; }
+.student-class span { color: #59728c; font-size: .88rem; font-weight: 700; text-transform: uppercase; }
+.student-class strong { font-size: 1.2rem; }
+@media (max-width: 560px) { .site-header { align-items: flex-start; flex-direction: column; } .product dl div { display: block; } .product dd { margin-top: 3px; text-align: left; } .student-item { align-items: stretch; flex-direction: column; } .student-actions { align-items: stretch; } .compact-form { grid-template-columns: 1fr; } .compact-form label, .compact-form .form-message { grid-column: auto; } .login-card dl div { grid-template-columns: 1fr; gap: 3px; } }
+@media print { body * { visibility: hidden; } #temporaryLoginCard, #temporaryLoginCard * { visibility: visible; } #temporaryLoginCard { position: absolute; inset: 0 auto auto 0; width: 100%; border: 1px solid #173a64; box-shadow: none; } .login-card-actions, #loginCardMessage, .temporary-warning { display: none; } }
