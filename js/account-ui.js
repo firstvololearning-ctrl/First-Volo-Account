@@ -14,7 +14,7 @@
 
   function expiration(value) {
     const date = new Date(value);
-    return Number.isNaN(date.getTime()) ? "Expiration date unavailable" : `Access through ${new Intl.DateTimeFormat("en-US", { month: "long", day: "numeric", year: "numeric" }).format(date)}`;
+    return Number.isNaN(date.getTime()) ? "Expiration date unavailable" : new Intl.DateTimeFormat("en-US", { month: "long", day: "numeric", year: "numeric" }).format(date);
   }
 
   function isEmailRateLimit(error) {
@@ -105,8 +105,16 @@
     currentSnapshot = snapshot;
     const name = snapshot.educatorProfile?.display_name || snapshot.user.user_metadata?.display_name || "Educator";
     const byKey = new Map(snapshot.entitlements.map(item => [item.product_key, item]));
-    const cards = window.FirstVoloAccountData.definitions.map(product => { const entitlement = byKey.get(product.key); const type = entitlement && ["complimentary", "complimentary_annual"].includes(entitlement.access_type) ? "Complimentary annual" : entitlement ? entitlement.access_type : "—"; return `<article class="product"><h4>${escape(product.label)}</h4><dl><div><dt>Status</dt><dd class="${entitlement ? "active" : "inactive"}">${entitlement ? "Active" : "No active access"}</dd></div><div><dt>Access type</dt><dd>${escape(type)}</dd></div><div><dt>Expiration</dt><dd>${entitlement ? escape(expiration(entitlement.expires_at)) : "—"}</dd></div></dl></article>`; }).join("");
-    content.innerHTML = `<div class="account-heading"><h2>My First Volo</h2><p>Account access and product status</p></div>${renderTemporaryLogin()}<section class="card"><div class="profile"><span class="profile-name">${escape(name)}</span><span class="profile-email">${escape(snapshot.user.email || "Signed-in educator")}</span></div><section class="products"><h3>My Products</h3><div class="product-grid">${cards}</div></section>${renderClasses(snapshot)}${renderStudents(snapshot)}${renderSecurity()}<p class="readonly-note">Product access is read-only on this page.</p></section>`;
+    const cards = window.FirstVoloAccountData.definitions.map(product => {
+      const entitlement = byKey.get(product.key);
+      const openUrl = window.FirstVoloAccountReturnTargets.destinationFor(product.returnTarget);
+      const accessText = entitlement ? `Active through ${expiration(entitlement.expires_at)}` : "No active access";
+      const actions = entitlement
+        ? (openUrl ? `<a class="button button-primary product-primary-action" href="${escape(openUrl)}">Open ${escape(product.label)}</a>` : '<p class="product-note">Product opening is not currently available from this account.</p>')
+        : `<a class="button button-primary product-primary-action" href="${escape(product.learnMoreUrl)}" target="_blank" rel="noopener noreferrer">Visit First Volo Learning</a><p class="product-note">Access is not active for this product.</p>`;
+      return `<article class="product ${entitlement ? "product-active" : "product-inactive"}"><div class="product-overview"><h4>${escape(product.label)}</h4><p>${escape(product.description)}</p></div><div class="product-access"><span class="product-access-label">Your access</span><strong class="${entitlement ? "active" : "inactive"}">${escape(accessText)}</strong></div><div class="product-actions">${actions}</div></article>`;
+    }).join("");
+    content.innerHTML = `<div class="account-heading"><h2>My First Volo</h2><p>Account access and product status</p></div>${renderTemporaryLogin()}<section class="card"><div class="profile"><span class="profile-name">${escape(name)}</span><span class="profile-email">${escape(snapshot.user.email || "Signed-in educator")}</span></div><section class="products" aria-labelledby="productsHeading"><div class="section-heading product-section-heading"><h3 id="productsHeading">First Volo Products</h3><p>Explore First Volo tools and see your current access.</p></div><div class="product-grid">${cards}</div></section>${renderClasses(snapshot)}${renderStudents(snapshot)}${renderSecurity()}<p class="readonly-note">Product access is read-only on this page.</p></section>`;
     signOutButton.hidden = false;
     bindEducatorEvents();
   }

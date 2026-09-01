@@ -1,10 +1,29 @@
 (function () {
   "use strict";
 
+  const learnMoreUrl = "https://firstvololearning.com";
   const definitions = Object.freeze([
-    { key: "first-volo-story-builder", label: "Story Builder" },
-    { key: "first-volo-morphology", label: "Morphology" },
-    { key: "primo-volo", label: "Primo Volo" }
+    {
+      key: "first-volo-story-builder",
+      label: "Story Builder",
+      description: "A structured story-building tool for developing narrative language through planning, storytelling, targeted support, revision, and retell.",
+      returnTarget: "storyBuilder",
+      learnMoreUrl
+    },
+    {
+      key: "first-volo-morphology",
+      label: "Morphology",
+      description: "Explicit word-part instruction and practice for building morphological knowledge, word analysis, vocabulary, and transfer.",
+      returnTarget: "morphology",
+      learnMoreUrl
+    },
+    {
+      key: "primo-volo",
+      label: "Primo Volo",
+      description: "Structured Italian learning activities and resources that move novice learners from supported recognition toward independent language use.",
+      returnTarget: "primoVolo",
+      learnMoreUrl
+    }
   ]);
 
   async function getAccountSnapshot() {
