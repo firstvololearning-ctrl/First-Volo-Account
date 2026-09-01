@@ -38,6 +38,7 @@
 .management-item, .student-item { padding: 16px; border: 1px solid #d8e3ec; border-radius: 14px; background: #fbfdff; }
 .management-item h4, .student-item h4 { margin: 0 0 8px; }
 .item-label, .login-status { display: block; color: #59728c; font-size: .88rem; }
+.login-helper { display: block; max-width: 440px; margin-top: 4px; color: #62798f; font-size: .84rem; line-height: 1.4; }
 .code-value { display: block; margin-top: 3px; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 1.05rem; letter-spacing: .08em; }
 .student-item { display: flex; align-items: center; justify-content: space-between; gap: 18px; }
 .student-item p { margin-bottom: 8px; }
@@ -51,6 +52,9 @@
 .empty-state { color: #59728c; }
 .login-card { margin-bottom: 20px; padding: 26px; border: 2px solid #7ea8cf; border-radius: 18px; background: #fff; box-shadow: 0 12px 30px rgba(23,58,100,.1); }
 .login-card h3 { margin-bottom: 18px; }
+.login-destination { display: grid; gap: 4px; margin-bottom: 20px; padding-bottom: 18px; border-bottom: 1px solid #e5edf3; }
+.login-destination span { color: #59728c; }
+.login-destination a { max-width: 100%; overflow-wrap: anywhere; font-weight: 700; }
 .login-card dl { display: grid; gap: 12px; margin: 0; }
 .login-card dl div { display: grid; grid-template-columns: 140px 1fr; gap: 16px; }
 .login-card dt { color: #59728c; }
