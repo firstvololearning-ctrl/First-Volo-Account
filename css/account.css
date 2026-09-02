@@ -52,6 +52,7 @@
 .class-product-control .class-product-state { grid-row: 2; }
 .item-label, .login-status { display: block; color: #59728c; font-size: .88rem; }
 .login-helper { display: block; max-width: 440px; margin-top: 4px; color: #62798f; font-size: .84rem; line-height: 1.4; }
+.student-progress-action { display: inline-flex; align-items: center; margin-top: 12px; padding: 8px 12px; border: 1px solid #bfd0e4; border-radius: 10px; background: #eef5fc; color: #24578a; font-size: .88rem; font-weight: 700; text-decoration: none; }
 .code-value { display: block; margin-top: 3px; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 1.05rem; letter-spacing: .08em; }
 .student-item { display: flex; align-items: center; justify-content: space-between; gap: 18px; }
 .student-item p { margin-bottom: 8px; }
