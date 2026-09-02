@@ -95,10 +95,19 @@
     const hasMorphologyEntitlement = snapshot.entitlements.some(item => item.product_key === morphologyKey);
     const morphologyClassIds = new Set(snapshot.classProductAccess.filter(item => item.product_key === morphologyKey).map(item => item.class_id));
     const morphologyProgressUrl = window.FirstVoloAccountReturnTargets.detailedProgressFor("morphology");
+    const primoKey = "primo-volo";
+    const hasPrimoEntitlement = snapshot.entitlements.some(item => item.product_key === primoKey);
+    const primoClassIds = new Set(snapshot.classProductAccess.filter(item => item.product_key === primoKey).map(item => item.class_id));
+    const primoProgressUrl = window.FirstVoloAccountReturnTargets.detailedProgressFor("primoVolo");
     const rows = snapshot.students.length ? snapshot.students.map(student => {
-      const detailedProgress = hasMorphologyEntitlement && morphologyClassIds.has(student.class_id) && morphologyProgressUrl
-        ? `<a class="student-progress-action" href="${escape(`${morphologyProgressUrl}?studentId=${encodeURIComponent(student.id)}`)}">View Morphology Progress →</a>`
-        : "";
+      const detailedProgress = [
+        hasMorphologyEntitlement && morphologyClassIds.has(student.class_id) && morphologyProgressUrl
+          ? `<a class="student-progress-action" href="${escape(`${morphologyProgressUrl}?studentId=${encodeURIComponent(student.id)}`)}">View Morphology Progress →</a>`
+          : "",
+        hasPrimoEntitlement && primoClassIds.has(student.class_id) && primoProgressUrl
+          ? `<a class="student-progress-action" href="${escape(`${primoProgressUrl}?studentId=${encodeURIComponent(student.id)}`)}">View Primo Progress →</a>`
+          : ""
+      ].filter(Boolean).join(" ");
       return `<article class="student-item"><div><h4>${escape(student.display_name)}</h4><p>${escape(student.class_name)}</p>${student.student_code_hint ? `<span class="login-status">Login created • ending ${escape(student.student_code_hint)}</span><span class="login-helper">Need another copy? Reset the login to create a new Student Code.</span>` : '<span class="login-status">Login not created</span>'}${detailedProgress}</div><div class="student-actions"><button class="button button-secondary" type="button" data-student-action="login" data-student-id="${escape(student.id)}">${student.student_code_hint ? "Reset login" : "Generate login"}</button><button class="text-button danger-text" type="button" data-student-action="revoke" data-student-id="${escape(student.id)}">Sign student out everywhere</button></div></article>`;
     }).join("") : '<p class="empty-state">No students yet.</p>';
     const addForm = snapshot.classes.length ? `<form id="addStudentForm" class="compact-form"><label for="studentClass">Class</label><select id="studentClass" required>${options}</select><label for="studentName">Student display name</label><input id="studentName" type="text" maxlength="120" autocomplete="off" placeholder="Maya R." required><button class="button button-primary" type="submit">Add student</button><p id="addStudentMessage" class="form-message" role="status" aria-live="polite"></p></form>` : '<p class="empty-state">Create a class before adding students.</p>';
