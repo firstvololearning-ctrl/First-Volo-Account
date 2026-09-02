@@ -91,6 +91,10 @@
 
   function renderStudents(snapshot) {
     const options = snapshot.classes.map(item => `<option value="${escape(item.id)}">${escape(item.name)}</option>`).join("");
+    const storyBuilderKey = "first-volo-story-builder";
+    const hasStoryBuilderEntitlement = snapshot.entitlements.some(item => item.product_key === storyBuilderKey);
+    const storyBuilderClassIds = new Set(snapshot.classProductAccess.filter(item => item.product_key === storyBuilderKey).map(item => item.class_id));
+    const storyBuilderUrl = window.FirstVoloAccountReturnTargets.destinationFor("storyBuilder");
     const morphologyKey = "first-volo-morphology";
     const hasMorphologyEntitlement = snapshot.entitlements.some(item => item.product_key === morphologyKey);
     const morphologyClassIds = new Set(snapshot.classProductAccess.filter(item => item.product_key === morphologyKey).map(item => item.class_id));
@@ -101,6 +105,9 @@
     const primoProgressUrl = window.FirstVoloAccountReturnTargets.detailedProgressFor("primoVolo");
     const rows = snapshot.students.length ? snapshot.students.map(student => {
       const detailedProgress = [
+        hasStoryBuilderEntitlement && storyBuilderClassIds.has(student.class_id) && storyBuilderUrl
+          ? `<a class="student-progress-action" href="${escape(`${storyBuilderUrl}?studentId=${encodeURIComponent(student.id)}`)}">Open Story Builder</a>`
+          : "",
         hasMorphologyEntitlement && morphologyClassIds.has(student.class_id) && morphologyProgressUrl
           ? `<a class="student-progress-action" href="${escape(`${morphologyProgressUrl}?studentId=${encodeURIComponent(student.id)}`)}">View Morphology Progress →</a>`
           : "",
