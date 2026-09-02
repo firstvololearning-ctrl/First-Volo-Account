@@ -13,7 +13,7 @@
     {
       key: "first-volo-morphology",
       label: "Morphology",
-      description: "Explicit word-part instruction and practice for building morphological knowledge, word analysis, vocabulary, and transfer.",
+      description: "Explicit word-part instruction and practice for building morphological knowledge, word analysis, vocabulary, and word-solving skills.",
       returnTarget: "morphology",
       learnMoreUrl
     },
