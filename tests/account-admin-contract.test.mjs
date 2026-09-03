@@ -18,5 +18,10 @@ assert.match(adminUi, /find_educator_entitlements/);
 assert.match(adminUi, /set_educator_complimentary_access/);
 assert.match(accountData, /get_entitlement_admin_status/);
 assert.match(accountUi, /Manage educator subscriptions/);
+assert.match(accountUi, /Create an educator account or sign in by email/);
+assert.match(accountUi, /Create account or email sign-in link/);
+assert.match(accountUi, /signInWithMagicLink/);
+assert.doesNotMatch(accountUi, /id="magicLinkButton"/);
+assert.doesNotMatch(accountUi, /id="magicLinkForm"[^>]*hidden/);
 
 console.log("Account admin contract checks passed.");
