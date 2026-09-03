@@ -32,7 +32,7 @@
     signOutButton.hidden = true;
     const isStoryBuilder = window.FirstVoloAccountReturnTargets.requestedKey() === "storyBuilder";
     const heading = isStoryBuilder ? "Sign in to continue to Story Builder" : "Sign in to My First Volo";
-    content.innerHTML = `<section class="card"><div class="account-heading"><h2>${heading}</h2><p>Use your My First Volo account to access your products.</p></div><form id="passwordSignInForm" class="sign-in-form"><label for="signInEmail">Email</label><input id="signInEmail" type="email" autocomplete="email" required><label for="signInPassword">Password</label><input id="signInPassword" type="password" autocomplete="current-password" required><button class="button button-primary" type="submit">Sign in</button><p id="passwordSignInMessage" class="form-message" role="status" aria-live="polite"></p></form><div class="secondary-auth-actions"><button id="forgotPasswordButton" class="text-button" type="button">Forgot password?</button></div><form id="forgotPasswordForm" class="sign-in-form secondary-form" hidden><label for="resetEmail">Email</label><input id="resetEmail" type="email" autocomplete="email" required><button class="button button-secondary" type="submit">Send password-reset link</button><p id="resetMessage" class="form-message" role="status" aria-live="polite">If an account exists for that email, a password-reset link has been sent.</p></form><section class="email-account-panel" aria-labelledby="emailAccountHeading"><h3 id="emailAccountHeading">Create an educator account or sign in by email</h3><p>Enter your educator email. If it is new, First Volo will create the account. If it already exists, you will receive a secure sign-in link.</p><form id="magicLinkForm" class="sign-in-form"><label for="magicEmail">Educator email</label><input id="magicEmail" type="email" autocomplete="email" required><button class="button button-secondary" type="submit">Create account or email sign-in link</button><p id="magicMessage" class="form-message" role="status" aria-live="polite"></p></form></section><div class="student-entry"><span>Student?</span><a href="student-login.html">Student sign in →</a></div><p class="readonly-note">New educator accounts require product access from a First Volo administrator.</p></section>`;
+    content.innerHTML = `<section class="card"><div class="account-heading"><h2>${heading}</h2><p>Use your My First Volo account to access your products.</p></div><form id="passwordSignInForm" class="sign-in-form"><label for="signInEmail">Email</label><input id="signInEmail" type="email" autocomplete="email" required><label for="signInPassword">Password</label><input id="signInPassword" type="password" autocomplete="current-password" required><button class="button button-primary" type="submit">Sign in</button><p id="passwordSignInMessage" class="form-message" role="status" aria-live="polite"></p></form><div class="secondary-auth-actions"><button id="forgotPasswordButton" class="text-button" type="button">Forgot password?</button></div><form id="forgotPasswordForm" class="sign-in-form secondary-form" hidden><label for="resetEmail">Email</label><input id="resetEmail" type="email" autocomplete="email" required><button class="button button-secondary" type="submit">Send password-reset link</button><p id="resetMessage" class="form-message" role="status" aria-live="polite">If an account exists for that email, a password-reset link has been sent.</p></form><section class="email-account-panel" aria-labelledby="emailAccountHeading"><h3 id="emailAccountHeading">Create an educator account or sign in by email</h3><p>Enter your educator email. We’ll send a six-digit code. New educators can create an account, and existing educators can sign in.</p><form id="emailCodeRequestForm" class="sign-in-form"><label for="emailCodeEmail">Educator email</label><input id="emailCodeEmail" type="email" autocomplete="email" required><button class="button button-secondary" type="submit">Email me a sign-in code</button><p id="emailCodeRequestMessage" class="form-message" role="status" aria-live="polite"></p></form><form id="emailCodeVerifyForm" class="sign-in-form secondary-form" hidden><p id="emailCodeDestination"></p><label for="emailCode">Six-digit code</label><input id="emailCode" type="text" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]{6}" maxlength="6" required><button class="button button-primary" type="submit">Verify code and sign in</button><button id="changeEmailButton" class="text-button" type="button">Use a different email</button><p id="emailCodeVerifyMessage" class="form-message" role="status" aria-live="polite"></p></form></section><div class="student-entry"><span>Student?</span><a href="student-login.html">Student sign in →</a></div><p class="readonly-note">New educator accounts require product access from a First Volo administrator.</p></section>`;
 
     const passwordForm = document.getElementById("passwordSignInForm");
     const passwordMessage = document.getElementById("passwordSignInMessage");
@@ -61,10 +61,44 @@
       document.getElementById("resetEmail").value = "";
     });
 
-    document.getElementById("magicLinkForm").addEventListener("submit", async event => {
+    const emailCodeRequestForm = document.getElementById("emailCodeRequestForm");
+    const emailCodeVerifyForm = document.getElementById("emailCodeVerifyForm");
+    let emailAwaitingCode = "";
+    emailCodeRequestForm.addEventListener("submit", async event => {
       event.preventDefault();
-      const message = document.getElementById("magicMessage");
-      try { const result = await window.FirstVoloAccountAuth.signInWithMagicLink(document.getElementById("magicEmail").value.trim()); if (result.error) throw result.error; message.textContent = "If the email can be used, check your inbox and open the secure First Volo link."; } catch (error) { message.textContent = isEmailRateLimit(error) ? "Too many sign-in links have been requested. Please wait a little while and try again." : "The sign-in email could not be sent. Please try again."; }
+      const message = document.getElementById("emailCodeRequestMessage");
+      emailAwaitingCode = document.getElementById("emailCodeEmail").value.trim().toLowerCase();
+      message.textContent = "Sending your code…";
+      try {
+        const result = await window.FirstVoloAccountAuth.sendEmailCode(emailAwaitingCode);
+        if (result.error) throw result.error;
+        emailCodeRequestForm.hidden = true;
+        emailCodeVerifyForm.hidden = false;
+        document.getElementById("emailCodeDestination").textContent = `Enter the code sent to ${emailAwaitingCode}.`;
+        document.getElementById("emailCode").focus();
+      } catch (error) {
+        message.textContent = isEmailRateLimit(error) ? "A code was requested recently. Please wait one minute and try again." : "The sign-in code could not be sent. Please try again.";
+      }
+    });
+    emailCodeVerifyForm.addEventListener("submit", async event => {
+      event.preventDefault();
+      const message = document.getElementById("emailCodeVerifyMessage");
+      const token = document.getElementById("emailCode").value.replace(/\D/g, "");
+      if (token.length !== 6) { message.textContent = "Enter the six-digit code from your email."; return; }
+      message.textContent = "Checking your code…";
+      try {
+        const result = await window.FirstVoloAccountAuth.verifyEmailCode(emailAwaitingCode, token);
+        if (result.error) throw result.error;
+      } catch (error) {
+        message.textContent = "That code is incorrect or has expired. Request a new code and try again.";
+      }
+    });
+    document.getElementById("changeEmailButton").addEventListener("click", () => {
+      emailAwaitingCode = "";
+      emailCodeVerifyForm.hidden = true;
+      emailCodeRequestForm.hidden = false;
+      document.getElementById("emailCode").value = "";
+      document.getElementById("emailCodeEmail").focus();
     });
   }
 

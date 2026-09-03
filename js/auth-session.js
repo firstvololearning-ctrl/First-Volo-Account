@@ -57,13 +57,22 @@
     return result;
   }
 
-  async function signInWithMagicLink(email) {
+  async function sendEmailCode(email) {
     if (!client) throw state?.error || new Error("Auth unavailable");
-    const key = window.FirstVoloAccountReturnTargets.requestedKey();
     return client.auth.signInWithOtp({
       email,
-      options: { emailRedirectTo: callbackUrl(key), shouldCreateUser: true }
+      options: { shouldCreateUser: true }
     });
+  }
+
+  async function verifyEmailCode(email, token) {
+    if (!client) throw state?.error || new Error("Auth unavailable");
+    const result = await client.auth.verifyOtp({ email, token, type: "email" });
+    if (!result.error && result.data?.session) {
+      const destination = destinationForCurrentTarget();
+      window.location.replace(destination || "index.html");
+    }
+    return result;
   }
 
   async function requestPasswordReset(email) {
@@ -122,7 +131,8 @@
     ready: () => ready,
     getUser: () => user,
     signInWithPassword,
-    signInWithMagicLink,
+    sendEmailCode,
+    verifyEmailCode,
     requestPasswordReset,
     updatePassword,
     handleSessionError,
