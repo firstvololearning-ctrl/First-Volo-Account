@@ -3,10 +3,22 @@
 
   const content = document.getElementById("studentContent");
   const auth = window.FirstVoloStudentAuth;
-  const productLabels = Object.freeze({
-    "first-volo-story-builder": "Story Builder",
-    "first-volo-morphology": "Morphology",
-    "primo-volo": "Primo Volo"
+  const studentProducts = Object.freeze({
+    "first-volo-morphology": Object.freeze({
+      label: "Morpho",
+      actionLabel: "Open Morpho",
+      href: "https://firstvololearning-ctrl.github.io/First-Volo-Morphology/"
+    }),
+    "primo-volo": Object.freeze({
+      label: "Primo",
+      actionLabel: "Open Primo",
+      href: "https://firstvololearning-ctrl.github.io/Primo-Volo-Italian-Learning-Hub/"
+    }),
+    "first-volo-story-builder": Object.freeze({
+      label: "Story Builder",
+      actionLabel: "Open Story Builder",
+      href: "https://firstvololearning-ctrl.github.io/First-Volo-Story-Builder/"
+    })
   });
 
   function escape(value) {
@@ -49,7 +61,10 @@
 
   async function renderStudentHome(context) {
     const access = await auth.getStudentProductAccess();
-    const availableProducts = access.productKeys.filter(key => productLabels[key]).map(key => `<li>${escape(productLabels[key])} <span>— Coming next</span></li>`).join("");
+    const authorizedKeys = new Set(access.productKeys);
+    const availableProducts = Object.entries(studentProducts).filter(([key]) => authorizedKeys.has(key)).map(([, product]) => {
+      return `<li><strong>${escape(product.label)}</strong><a class="button button-primary student-product-action" href="${escape(product.href)}">${escape(product.actionLabel)}</a></li>`;
+    }).join("");
     const availability = availableProducts ? `<section class="student-products"><h3>Your First Volo activities</h3><p>Available from your teacher</p><ul>${availableProducts}</ul></section>` : '<section class="student-products"><h3>Your First Volo activities</h3><p>No activities are available yet.</p></section>';
     content.innerHTML = `<section class="card student-home"><p class="eyebrow">First Volo Learning</p><h2>Hi, ${escape(context.display_name)}!</h2><p>You’re signed in to First Volo.</p><div class="student-class"><span>Class</span><strong>${escape(context.class_name)}</strong></div>${availability}<p>Your teacher will tell you which First Volo activity to open.</p><button id="studentSignOutButton" class="button button-secondary" type="button">Sign out</button></section>`;
     document.getElementById("studentSignOutButton").addEventListener("click", async () => {
