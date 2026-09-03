@@ -5,6 +5,9 @@ const migration = fs.readFileSync(new URL("../supabase/migrations/20260903140000
 const adminUi = fs.readFileSync(new URL("../js/admin-ui.js", import.meta.url), "utf8");
 const accountData = fs.readFileSync(new URL("../js/account-data.js", import.meta.url), "utf8");
 const accountUi = fs.readFileSync(new URL("../js/account-ui.js", import.meta.url), "utf8");
+const authSession = fs.readFileSync(new URL("../js/auth-session.js", import.meta.url), "utf8");
+const indexHtml = fs.readFileSync(new URL("../index.html", import.meta.url), "utf8");
+const callbackHtml = fs.readFileSync(new URL("../auth-callback.html", import.meta.url), "utf8");
 
 assert.match(migration, /private\.admin_memberships/);
 assert.match(migration, /private\.entitlement_admin_audit/);
@@ -23,5 +26,8 @@ assert.match(accountUi, /Create account or email sign-in link/);
 assert.match(accountUi, /signInWithMagicLink/);
 assert.doesNotMatch(accountUi, /id="magicLinkButton"/);
 assert.doesNotMatch(accountUi, /id="magicLinkForm"[^>]*hidden/);
+assert.match(indexHtml, /images\/logo\.png/);
+assert.match(callbackHtml, /Return to My First Volo/);
+assert.match(authSession, /otp_expired/);
 
 console.log("Account admin contract checks passed.");

@@ -78,21 +78,35 @@
 
   async function completeRedirect() {
     const message = document.getElementById("callbackMessage");
+    const returnLink = document.querySelector(".callback-return");
+    const hashParameters = new URLSearchParams(window.location.hash.replace(/^#/, ""));
+    const redirectError = hashParameters.get("error_code");
+    if (redirectError) {
+      if (message) message.textContent = redirectError === "otp_expired"
+        ? "This sign-in link is no longer valid. It may have expired or already been opened. Return to My First Volo and request a fresh link."
+        : "This sign-in link could not be completed. Return to My First Volo and request a fresh link.";
+      if (returnLink) returnLink.hidden = false;
+      return;
+    }
     if (!client) {
       if (message) message.textContent = "Secure sign-in is unavailable.";
+      if (returnLink) returnLink.hidden = false;
       return;
     }
     const result = await client.auth.getSession();
     if (result.error) {
       if (await handleSessionError(result.error)) {
         if (message) message.textContent = "Your sign-in session has expired. Please sign in again.";
+        if (returnLink) returnLink.hidden = false;
         return;
       }
       if (message) message.textContent = "Sign-in could not be completed. Please return to My First Volo and try again.";
+      if (returnLink) returnLink.hidden = false;
       return;
     }
     if (!result.data.session?.user) {
       if (message) message.textContent = "Sign-in could not be completed. Please return to My First Volo and try again.";
+      if (returnLink) returnLink.hidden = false;
       return;
     }
     window.location.replace(destinationForCurrentTarget() || "index.html");
