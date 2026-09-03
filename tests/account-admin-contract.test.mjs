@@ -8,6 +8,7 @@ const accountUi = fs.readFileSync(new URL("../js/account-ui.js", import.meta.url
 const authSession = fs.readFileSync(new URL("../js/auth-session.js", import.meta.url), "utf8");
 const indexHtml = fs.readFileSync(new URL("../index.html", import.meta.url), "utf8");
 const callbackHtml = fs.readFileSync(new URL("../auth-callback.html", import.meta.url), "utf8");
+const directoryMigration = fs.readFileSync(new URL("../supabase/migrations/20260903203554_admin_educator_directory.sql", import.meta.url), "utf8");
 
 assert.match(migration, /private\.admin_memberships/);
 assert.match(migration, /private\.entitlement_admin_audit/);
@@ -31,5 +32,13 @@ assert.match(authSession, /client\.auth\.verifyOtp\(\{ email, token, type: "emai
 assert.match(indexHtml, /images\/logo\.png/);
 assert.match(callbackHtml, /Return to My First Volo/);
 assert.match(authSession, /otp_expired/);
+assert.match(directoryMigration, /private\.is_entitlement_admin\(auth\.uid\(\)\)/);
+assert.match(directoryMigration, /au\.last_sign_in_at/);
+assert.match(directoryMigration, /coalesce\(au\.is_anonymous, false\) = false/);
+assert.match(directoryMigration, /revoke execute on function public\.list_educator_accounts\(\) from public, anon/);
+assert.match(adminUi, /list_educator_accounts/);
+assert.match(adminUi, /Last successful sign-in/);
+assert.match(adminUi, /Account created/);
+assert.match(adminUi, /Current product access/);
 
 console.log("Account admin contract checks passed.");

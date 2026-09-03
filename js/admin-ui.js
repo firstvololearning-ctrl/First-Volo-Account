@@ -9,6 +9,7 @@
     ["primo-volo", "Primo Volo"]
   ];
   let educator = null;
+  let educatorDirectory = [];
 
   function escape(value) {
     return String(value || "").replace(/[&<>"']/g, char => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#039;" }[char]));
@@ -26,9 +27,48 @@
     return date.toISOString().slice(0, 10);
   }
 
+  function formattedDate(value, fallback = "Never") {
+    if (!value) return fallback;
+    const date = new Date(value);
+    return Number.isNaN(date.getTime()) ? fallback : date.toLocaleString([], { dateStyle: "medium", timeStyle: "short" });
+  }
+
+  function productNames(keys) {
+    const labels = new Map(products);
+    return (keys || []).map(key => labels.get(key) || key);
+  }
+
+  function renderDirectory() {
+    const container = document.getElementById("educatorDirectory");
+    if (!educatorDirectory.length) {
+      container.innerHTML = '<p class="empty-state">No educator accounts have been created yet.</p>';
+      return;
+    }
+    container.innerHTML = `<div class="educator-directory-list">${educatorDirectory.map(item => {
+      const access = productNames(item.active_product_keys);
+      return `<article class="educator-directory-item"><div class="educator-identity"><strong>${escape(item.display_name || "Educator")}</strong><span>${escape(item.email)}</span></div><dl><div><dt>Last successful sign-in</dt><dd>${escape(formattedDate(item.last_sign_in_at))}</dd></div><div><dt>Account created</dt><dd>${escape(formattedDate(item.created_at, "Unavailable"))}</dd></div><div><dt>Current product access</dt><dd>${access.length ? access.map(escape).join(", ") : "No active access"}</dd></div></dl><button class="button button-secondary" type="button" data-manage-educator="${escape(item.email)}">Manage access</button></article>`;
+    }).join("")}</div>`;
+    document.querySelectorAll("[data-manage-educator]").forEach(button => button.addEventListener("click", () => {
+      document.getElementById("educatorEmail").value = button.dataset.manageEducator;
+      document.getElementById("educatorSearchForm").requestSubmit();
+      document.getElementById("educatorResult").scrollIntoView({ behavior: "smooth", block: "start" });
+    }));
+  }
+
+  async function loadDirectory() {
+    const message = document.getElementById("directoryMessage");
+    message.textContent = "Loading educator accounts…";
+    const response = await client.rpc("list_educator_accounts");
+    if (response.error) { message.textContent = "Educator accounts could not be loaded."; return; }
+    educatorDirectory = Array.isArray(response.data) ? response.data : [];
+    message.textContent = "";
+    renderDirectory();
+  }
+
   function renderShell() {
-    content.innerHTML = `<section class="card admin-card"><h2>Manage educator access</h2><p>Find an existing educator account by its exact email address.</p><form id="educatorSearchForm" class="admin-search"><label for="educatorEmail">Educator email</label><div><input id="educatorEmail" type="email" autocomplete="off" required><button class="button button-primary" type="submit">Find educator</button></div><p id="adminMessage" class="form-message" role="status"></p></form><section id="educatorResult"></section></section>`;
+    content.innerHTML = `<section class="card admin-card"><h2>Educator accounts</h2><p>View educator sign-in activity and current product access. This information is visible only to authorized First Volo administrators.</p><p id="directoryMessage" class="form-message" role="status"></p><section id="educatorDirectory" aria-label="Educator accounts"></section><div class="admin-lookup"><h3>Find an educator</h3><p>Search by exact email address to manage access.</p><form id="educatorSearchForm" class="admin-search"><label for="educatorEmail">Educator email</label><div><input id="educatorEmail" type="email" autocomplete="off" required><button class="button button-primary" type="submit">Find educator</button></div><p id="adminMessage" class="form-message" role="status"></p></form><section id="educatorResult"></section></div></section>`;
     document.getElementById("educatorSearchForm").addEventListener("submit", search);
+    loadDirectory();
   }
 
   function renderEducator() {
@@ -77,6 +117,7 @@
     educator = refreshed.data;
     renderEducator();
     document.getElementById("subscriptionMessage").textContent = enabled ? "Complimentary access saved." : "Access deactivated.";
+    loadDirectory();
   }
 
   async function init() {
