@@ -1,0 +1,91 @@
+(function () {
+  "use strict";
+
+  const content = document.getElementById("adminContent");
+  const client = window.FirstVoloAccountSupabase?.client;
+  const products = [
+    ["first-volo-morphology", "Morphology"],
+    ["first-volo-story-builder", "Story Builder"],
+    ["primo-volo", "Primo Volo"]
+  ];
+  let educator = null;
+
+  function escape(value) {
+    return String(value || "").replace(/[&<>"']/g, char => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#039;" }[char]));
+  }
+
+  function dateValue(value) {
+    if (!value) return "";
+    const date = new Date(value);
+    return Number.isNaN(date.getTime()) ? "" : date.toISOString().slice(0, 10);
+  }
+
+  function defaultExpiration() {
+    const date = new Date();
+    date.setUTCFullYear(date.getUTCFullYear() + 1);
+    return date.toISOString().slice(0, 10);
+  }
+
+  function renderShell() {
+    content.innerHTML = `<section class="card admin-card"><h2>Manage educator access</h2><p>Find an existing educator account by its exact email address.</p><form id="educatorSearchForm" class="admin-search"><label for="educatorEmail">Educator email</label><div><input id="educatorEmail" type="email" autocomplete="off" required><button class="button button-primary" type="submit">Find educator</button></div><p id="adminMessage" class="form-message" role="status"></p></form><section id="educatorResult"></section></section>`;
+    document.getElementById("educatorSearchForm").addEventListener("submit", search);
+  }
+
+  function renderEducator() {
+    const result = document.getElementById("educatorResult");
+    const byProduct = new Map();
+    educator.entitlements.filter(item => item.status === "active" && new Date(item.expires_at) > new Date()).forEach(item => {
+      if (!byProduct.has(item.product_key)) byProduct.set(item.product_key, item);
+    });
+    result.innerHTML = `<div class="educator-result"><h3>${escape(educator.display_name || "Educator")}</h3><p>${escape(educator.email)}</p><div class="admin-product-list">${products.map(([key, label]) => {
+      const current = byProduct.get(key);
+      return `<form class="admin-product" data-product-form data-product-key="${key}"><div><h4>${label}</h4><p>${current ? `Active through ${escape(new Date(current.expires_at).toLocaleDateString())}` : "No active access"}</p></div><label>Expiration date<input name="expires" type="date" value="${escape(dateValue(current?.expires_at) || defaultExpiration())}" required></label><div class="admin-actions"><button class="button button-primary" name="action" value="grant" type="submit">${current ? "Extend or replace" : "Grant complimentary access"}</button>${current ? '<button class="button button-secondary" name="action" value="deactivate" type="submit">Deactivate</button>' : ""}</div></form>`;
+    }).join("")}</div><p id="subscriptionMessage" class="form-message" role="status"></p></div>`;
+    document.querySelectorAll("[data-product-form]").forEach(form => form.addEventListener("submit", updateSubscription));
+  }
+
+  async function search(event) {
+    event.preventDefault();
+    const message = document.getElementById("adminMessage");
+    message.textContent = "Looking up educator…";
+    const response = await client.rpc("find_educator_entitlements", { p_email: document.getElementById("educatorEmail").value.trim() });
+    if (response.error) { message.textContent = "The educator lookup could not be completed."; return; }
+    if (!response.data?.found) { educator = null; document.getElementById("educatorResult").innerHTML = ""; message.textContent = "No existing educator account was found for that email."; return; }
+    educator = response.data;
+    message.textContent = "";
+    renderEducator();
+  }
+
+  async function updateSubscription(event) {
+    event.preventDefault();
+    const form = event.currentTarget;
+    const submitter = event.submitter;
+    const enabled = submitter?.value !== "deactivate";
+    if (!enabled && !window.confirm(`Deactivate ${form.dataset.productKey} access for ${educator.email}?`)) return;
+    const message = document.getElementById("subscriptionMessage");
+    message.textContent = enabled ? "Saving complimentary access…" : "Deactivating access…";
+    form.querySelectorAll("button, input").forEach(control => { control.disabled = true; });
+    const expiration = new Date(`${form.elements.expires.value}T23:59:59.999Z`).toISOString();
+    const response = await client.rpc("set_educator_complimentary_access", {
+      p_target_user_id: educator.user_id,
+      p_product_key: form.dataset.productKey,
+      p_expires_at: expiration,
+      p_enabled: enabled
+    });
+    if (response.error) { message.textContent = "Access could not be updated."; form.querySelectorAll("button, input").forEach(control => { control.disabled = false; }); return; }
+    const refreshed = await client.rpc("find_educator_entitlements", { p_email: educator.email });
+    educator = refreshed.data;
+    renderEducator();
+    document.getElementById("subscriptionMessage").textContent = enabled ? "Complimentary access saved." : "Access deactivated.";
+  }
+
+  async function init() {
+    const user = await window.FirstVoloAccountAuth.ready();
+    if (!client || !user || user.is_anonymous) { content.innerHTML = '<section class="card error"><h2>Administrator sign-in required</h2><p>Sign in through My First Volo first.</p></section>'; return; }
+    const status = await client.rpc("get_entitlement_admin_status");
+    if (status.error || status.data !== true) { content.innerHTML = '<section class="card error"><h2>Administrator access unavailable</h2><p>This account is not authorized to manage subscriptions.</p></section>'; return; }
+    renderShell();
+  }
+
+  init();
+}());

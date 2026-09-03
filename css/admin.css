@@ -1,0 +1,11 @@
+.admin-card { max-width: 980px; margin: 0 auto; }
+.admin-search { display: grid; gap: .75rem; }
+.admin-search > div { display: flex; gap: .75rem; align-items: end; }
+.admin-search input { flex: 1; }
+.educator-result { margin-top: 2rem; border-top: 1px solid #d7e3ef; padding-top: 1.5rem; }
+.admin-product-list { display: grid; gap: 1rem; margin-top: 1rem; }
+.admin-product { display: grid; grid-template-columns: minmax(180px, 1fr) minmax(180px, .7fr) auto; gap: 1rem; align-items: end; padding: 1rem; border: 1px solid #d7e3ef; border-radius: 14px; }
+.admin-product h4, .admin-product p { margin: 0; }
+.admin-product label { display: grid; gap: .35rem; }
+.admin-actions { display: flex; gap: .5rem; flex-wrap: wrap; }
+@media (max-width: 760px) { .admin-search > div, .admin-product { display: grid; grid-template-columns: 1fr; } }
