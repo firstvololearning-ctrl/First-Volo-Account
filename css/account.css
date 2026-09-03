@@ -64,6 +64,7 @@
 .item-label, .login-status { display: block; color: #59728c; font-size: .88rem; }
 .login-helper { display: block; max-width: 440px; margin-top: 4px; color: #62798f; font-size: .84rem; line-height: 1.4; }
 .student-progress-action { display: inline-flex; align-items: center; margin-top: 12px; padding: 8px 12px; border: 1px solid #bfd0e4; border-radius: 10px; background: #eef5fc; color: #24578a; font-size: .88rem; font-weight: 700; text-decoration: none; }
+.student-work-action { border-color: #aacbbd; background: #eaf6f0; color: #18734b; }
 .code-value { display: block; margin-top: 3px; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 1.05rem; letter-spacing: .08em; }
 .student-item { display: flex; align-items: center; justify-content: space-between; gap: 18px; }
 .student-item p { margin-bottom: 8px; }
@@ -89,11 +90,16 @@
 .temporary-warning { margin: 20px 0; padding: 12px; border-radius: 10px; background: #fff6df; color: #704f00; }
 .login-card-actions { display: flex; flex-wrap: wrap; gap: 10px; }
 .student-content { width: min(620px, calc(100% - 36px)); }
+.student-header-brand { display: flex; align-items: center; gap: 14px; }
+.student-header-brand img { width: 64px; height: 64px; object-fit: contain; }
 .student-auth-card { padding: clamp(24px, 6vw, 42px); }
+.student-auth-logo { display: block; width: 108px; height: 108px; margin: 0 auto 18px; object-fit: contain; }
 .student-auth-card .sign-in-form { max-width: none; }
 .student-auth-card input { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 1.05rem; letter-spacing: .08em; text-transform: uppercase; }
 .student-home { text-align: center; }
+.student-home-logo { width: 92px; height: 92px; margin: 0 auto 12px; object-fit: contain; }
 .student-home h2 { margin-bottom: 8px; font-size: clamp(1.8rem, 6vw, 2.5rem); }
+.student-welcome { color: #425f79; font-size: 1.05rem; }
 .student-class { display: grid; gap: 4px; margin: 26px 0; padding: 18px; border-radius: 14px; background: #eef5fc; }
 .student-class span { color: #59728c; font-size: .88rem; font-weight: 700; text-transform: uppercase; }
 .student-class strong { font-size: 1.2rem; }
@@ -102,7 +108,10 @@
 .student-products p { margin-bottom: 12px; color: #59728c; }
 .student-products ul { display: grid; gap: 10px; margin: 0; padding: 0; list-style: none; }
 .student-products li { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 12px; padding: 12px; border-radius: 12px; background: #f4f8fb; }
+.student-product-copy { display: grid; gap: 4px; }
+.student-product-copy span { color: #59728c; font-size: .88rem; line-height: 1.4; }
 .student-product-action { min-width: 150px; text-align: center; text-decoration: none; }
+.student-sign-out { margin-top: 4px; }
 @media (max-width: 900px) { .product-grid { grid-template-columns: 1fr; } }
 @media (max-width: 560px) { .site-header { align-items: flex-start; flex-direction: column; } .product { padding: 18px; } .student-item { align-items: stretch; flex-direction: column; } .student-actions { align-items: stretch; } .compact-form { grid-template-columns: 1fr; } .compact-form label, .compact-form .form-message { grid-column: auto; } .login-card dl div { grid-template-columns: 1fr; gap: 3px; } .student-products li { grid-template-columns: 1fr; } .student-product-action { width: 100%; } }
 @media print { body * { visibility: hidden; } #temporaryLoginCard, #temporaryLoginCard * { visibility: visible; } #temporaryLoginCard { position: absolute; inset: 0 auto auto 0; width: 100%; border: 1px solid #173a64; box-shadow: none; } .login-card-actions, #loginCardMessage, .temporary-warning { display: none; } }

@@ -134,6 +134,7 @@
     const primoKey = "primo-volo";
     const hasPrimoEntitlement = snapshot.entitlements.some(item => item.product_key === primoKey);
     const primoClassIds = new Set(snapshot.classProductAccess.filter(item => item.product_key === primoKey).map(item => item.class_id));
+    const primoUrl = window.FirstVoloAccountReturnTargets.destinationFor("primoVolo");
     const primoProgressUrl = window.FirstVoloAccountReturnTargets.detailedProgressFor("primoVolo");
     const rows = snapshot.students.length ? snapshot.students.map(student => {
       const detailedProgress = [
@@ -142,6 +143,9 @@
           : "",
         hasMorphologyEntitlement && morphologyClassIds.has(student.class_id) && morphologyProgressUrl
           ? `<a class="student-progress-action" href="${escape(`${morphologyProgressUrl}?studentId=${encodeURIComponent(student.id)}`)}">View Morphology Progress →</a>`
+          : "",
+        hasPrimoEntitlement && primoClassIds.has(student.class_id) && primoUrl
+          ? `<a class="student-progress-action student-work-action" href="${escape(`${primoUrl}?studentId=${encodeURIComponent(student.id)}`)}">Open Primo for this student</a>`
           : "",
         hasPrimoEntitlement && primoClassIds.has(student.class_id) && primoProgressUrl
           ? `<a class="student-progress-action" href="${escape(`${primoProgressUrl}?studentId=${encodeURIComponent(student.id)}`)}">View Primo Progress →</a>`

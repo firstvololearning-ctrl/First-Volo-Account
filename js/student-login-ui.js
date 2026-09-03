@@ -6,16 +6,19 @@
   const studentProducts = Object.freeze({
     "first-volo-morphology": Object.freeze({
       label: "Morpho",
+      description: "Build word-part knowledge, vocabulary, and word-solving skills.",
       actionLabel: "Open Morpho",
       href: "https://firstvololearning-ctrl.github.io/First-Volo-Morphology/"
     }),
     "primo-volo": Object.freeze({
       label: "Primo",
+      description: "Practice novice Italian through supported activities and an Italy Journey.",
       actionLabel: "Open Primo",
       href: "https://firstvololearning-ctrl.github.io/Primo-Volo-Italian-Learning-Hub/"
     }),
     "first-volo-story-builder": Object.freeze({
       label: "Story Builder",
+      description: "Plan, tell, revise, and retell stories with structured language support.",
       actionLabel: "Open Story Builder",
       href: "https://firstvololearning-ctrl.github.io/First-Volo-Story-Builder/"
     })
@@ -26,7 +29,7 @@
   }
 
   function renderSignIn(message = "") {
-    content.innerHTML = `<section class="card student-auth-card"><div class="account-heading"><p class="eyebrow">First Volo Learning</p><h2>Student Sign In</h2><p>Enter the two codes your teacher gave you.</p></div><form id="studentSignInForm" class="sign-in-form"><label for="classCode">Class Code</label><input id="classCode" type="text" autocomplete="off" autocapitalize="characters" spellcheck="false" required><label for="studentCode">Student Code</label><input id="studentCode" type="text" autocomplete="off" autocapitalize="characters" spellcheck="false" required><button class="button button-primary" type="submit">Sign in</button><p id="studentSignInMessage" class="form-message" role="status" aria-live="polite">${escape(message)}</p></form><div class="teacher-entry"><span>Teacher?</span><a href="index.html">Go to My First Volo</a></div></section>`;
+    content.innerHTML = `<section class="card student-auth-card"><img class="student-auth-logo" src="images/logo.png" alt="First Volo Learning"><div class="account-heading"><p class="eyebrow">My First Volo</p><h2>Student Sign In</h2><p>Enter the two codes your teacher gave you.</p></div><form id="studentSignInForm" class="sign-in-form"><label for="classCode">Class Code</label><input id="classCode" type="text" autocomplete="off" autocapitalize="characters" spellcheck="false" required><label for="studentCode">Student Code</label><input id="studentCode" type="text" autocomplete="off" autocapitalize="characters" spellcheck="false" required><button class="button button-primary" type="submit">Sign in</button><p id="studentSignInMessage" class="form-message" role="status" aria-live="polite">${escape(message)}</p></form><div class="teacher-entry"><span>Teacher?</span><a href="index.html">Go to My First Volo</a></div></section>`;
     document.getElementById("studentSignInForm").addEventListener("submit", async event => {
       event.preventDefault();
       const classInput = document.getElementById("classCode");
@@ -50,7 +53,7 @@
   }
 
   function renderEducatorSession() {
-    content.innerHTML = '<section class="card student-auth-card"><div class="account-heading"><p class="eyebrow">First Volo Learning</p><h2>Student Sign In</h2></div><p>This browser is currently signed in to an educator account. Sign out before using Student Sign In.</p><button id="educatorSignOutButton" class="button button-primary" type="button">Sign out and continue</button><p id="educatorSignOutMessage" class="form-message" role="status" aria-live="polite"></p><div class="teacher-entry"><a href="index.html">Return to My First Volo</a></div></section>';
+    content.innerHTML = '<section class="card student-auth-card"><img class="student-auth-logo" src="images/logo.png" alt="First Volo Learning"><div class="account-heading"><p class="eyebrow">My First Volo</p><h2>Student Sign In</h2></div><p>This browser is currently signed in to an educator account. Sign out before using Student Sign In.</p><button id="educatorSignOutButton" class="button button-primary" type="button">Sign out and continue</button><p id="educatorSignOutMessage" class="form-message" role="status" aria-live="polite"></p><div class="teacher-entry"><a href="index.html">Return to My First Volo</a></div></section>';
     document.getElementById("educatorSignOutButton").addEventListener("click", async () => {
       const message = document.getElementById("educatorSignOutMessage");
       message.textContent = "Signing out…";
@@ -63,10 +66,10 @@
     const access = await auth.getStudentProductAccess();
     const authorizedKeys = new Set(access.productKeys);
     const availableProducts = Object.entries(studentProducts).filter(([key]) => authorizedKeys.has(key)).map(([, product]) => {
-      return `<li><strong>${escape(product.label)}</strong><a class="button button-primary student-product-action" href="${escape(product.href)}">${escape(product.actionLabel)}</a></li>`;
+      return `<li><div class="student-product-copy"><strong>${escape(product.label)}</strong><span>${escape(product.description)}</span></div><a class="button button-primary student-product-action" href="${escape(product.href)}">${escape(product.actionLabel)}</a></li>`;
     }).join("");
-    const availability = availableProducts ? `<section class="student-products"><h3>Your First Volo activities</h3><p>Available from your teacher</p><ul>${availableProducts}</ul></section>` : '<section class="student-products"><h3>Your First Volo activities</h3><p>No activities are available yet.</p></section>';
-    content.innerHTML = `<section class="card student-home"><p class="eyebrow">First Volo Learning</p><h2>Hi, ${escape(context.display_name)}!</h2><p>You’re signed in to First Volo.</p><div class="student-class"><span>Class</span><strong>${escape(context.class_name)}</strong></div>${availability}<p>Your teacher will tell you which First Volo activity to open.</p><button id="studentSignOutButton" class="button button-secondary" type="button">Sign out</button></section>`;
+    const availability = availableProducts ? `<section class="student-products"><h3>Your activities</h3><p>Choose the activity your teacher asked you to use.</p><ul>${availableProducts}</ul></section>` : '<section class="student-products"><h3>Your activities</h3><p>No activities are available yet. Ask your teacher what to do next.</p></section>';
+    content.innerHTML = `<section class="card student-home"><img class="student-home-logo" src="images/logo.png" alt="First Volo Learning"><p class="eyebrow">My First Volo</p><h2>Hi, ${escape(context.display_name)}!</h2><p class="student-welcome">You’re ready to learn.</p><div class="student-class"><span>Your class</span><strong>${escape(context.class_name)}</strong></div>${availability}<button id="studentSignOutButton" class="button button-secondary student-sign-out" type="button">Sign out</button></section>`;
     document.getElementById("studentSignOutButton").addEventListener("click", async () => {
       await auth.signOut();
       renderSignIn();
