@@ -24,6 +24,7 @@ assert.match(accountUi, /Manage educator subscriptions/);
 assert.match(accountUi, /Create an educator account or sign in by email/);
 assert.match(accountUi, /Email me a sign-in code/);
 assert.match(accountUi, /Verify code and sign in/);
+assert.match(accountUi, /pattern="\[0-9\]\{6,10\}"/);
 assert.match(accountUi, /sendEmailCode/);
 assert.match(accountUi, /verifyEmailCode/);
 assert.match(authSession, /client\.auth\.verifyOtp\(\{ email, token, type: "email" \}\)/);
