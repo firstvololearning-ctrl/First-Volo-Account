@@ -127,6 +127,7 @@
     const hasStoryBuilderEntitlement = snapshot.entitlements.some(item => item.product_key === storyBuilderKey);
     const storyBuilderClassIds = new Set(snapshot.classProductAccess.filter(item => item.product_key === storyBuilderKey).map(item => item.class_id));
     const storyBuilderUrl = window.FirstVoloAccountReturnTargets.destinationFor("storyBuilder");
+    const storyBuilderProgressUrl = window.FirstVoloAccountReturnTargets.detailedProgressFor("storyBuilder");
     const morphologyKey = "first-volo-morphology";
     const hasMorphologyEntitlement = snapshot.entitlements.some(item => item.product_key === morphologyKey);
     const morphologyClassIds = new Set(snapshot.classProductAccess.filter(item => item.product_key === morphologyKey).map(item => item.class_id));
@@ -140,6 +141,9 @@
       const detailedProgress = [
         hasStoryBuilderEntitlement && storyBuilderClassIds.has(student.class_id) && storyBuilderUrl
           ? `<a class="student-progress-action" href="${escape(`${storyBuilderUrl}?studentId=${encodeURIComponent(student.id)}`)}">Open Story Builder</a>`
+          : "",
+        hasStoryBuilderEntitlement && storyBuilderClassIds.has(student.class_id) && storyBuilderProgressUrl
+          ? `<a class="student-progress-action" href="${escape(`${storyBuilderProgressUrl}?studentId=${encodeURIComponent(student.id)}`)}">View Story Builder Progress →</a>`
           : "",
         hasMorphologyEntitlement && morphologyClassIds.has(student.class_id) && morphologyProgressUrl
           ? `<a class="student-progress-action" href="${escape(`${morphologyProgressUrl}?studentId=${encodeURIComponent(student.id)}`)}">View Morphology Progress →</a>`

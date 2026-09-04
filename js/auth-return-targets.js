@@ -3,6 +3,7 @@
   const targets = Object.freeze({ storyBuilder: "https://firstvololearning-ctrl.github.io/First-Volo-Story-Builder/", morphology: "https://firstvololearning-ctrl.github.io/First-Volo-Morphology/", primoVolo: "https://firstvololearning-ctrl.github.io/Primo-Volo-Italian-Learning-Hub/" });
   const localHarness = window.location.hostname === "127.0.0.1" || window.location.hostname === "localhost";
   const detailedProgressTargets = Object.freeze({
+    storyBuilder: localHarness ? `${window.location.origin}/story-builder/story-builder-progress.html` : `${targets.storyBuilder}story-builder-progress.html`,
     morphology: localHarness ? `${window.location.origin}/morphology/program-progress.html` : `${targets.morphology}program-progress.html`,
     primoVolo: localHarness ? `${window.location.origin}/primo/primo-progress.html` : `${targets.primoVolo}primo-progress.html`
   });
