@@ -23,6 +23,12 @@
       href: "https://firstvololearning-ctrl.github.io/First-Volo-Story-Builder/"
     })
   });
+  const requestedReturnTarget = new URLSearchParams(window.location.search).get("returnTo");
+  const returnProductKeys = Object.freeze({
+    morphology: "first-volo-morphology",
+    primoVolo: "primo-volo",
+    storyBuilder: "first-volo-story-builder"
+  });
 
   function escape(value) {
     return String(value || "").replace(/[&<>"']/g, char => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#039;" }[char]));
@@ -65,6 +71,11 @@
   async function renderStudentHome(context) {
     const access = await auth.getStudentProductAccess();
     const authorizedKeys = new Set(access.productKeys);
+    const requestedProductKey = returnProductKeys[requestedReturnTarget];
+    if (requestedProductKey && authorizedKeys.has(requestedProductKey)) {
+      window.location.replace(studentProducts[requestedProductKey].href);
+      return;
+    }
     const availableProducts = Object.entries(studentProducts).filter(([key]) => authorizedKeys.has(key)).map(([, product]) => {
       return `<li><div class="student-product-copy"><strong>${escape(product.label)}</strong><span>${escape(product.description)}</span></div><a class="button button-primary student-product-action" href="${escape(product.href)}">${escape(product.actionLabel)}</a></li>`;
     }).join("");
