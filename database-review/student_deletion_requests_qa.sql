@@ -1,0 +1,58 @@
+create temporary table request_qa_results(test text,passed boolean) on commit drop;
+create function pg_temp.assert_request(test text,ok boolean) returns void language plpgsql as $$ begin
+ if ok is distinct from true then raise exception 'Failed: %',test; end if;
+ insert into request_qa_results values(test,true);
+end $$;
+do $$
+declare o uuid:=gen_random_uuid(); other_owner uuid:=gen_random_uuid(); a uuid:=gen_random_uuid(); b uuid:=gen_random_uuid(); r uuid; r2 uuid; deadline timestamptz; arch timestamptz:=now()-interval '5 days';
+begin
+ insert into auth.users(id,is_anonymous,email_confirmed_at) values(o,false,now()),(other_owner,false,now());
+ insert into public.students(id,owner_user_id,display_name,archived_at) values(a,o,'Fictional deletion QA',null),(b,other_owner,'Control learner',arch);
+ perform set_config('request.jwt.claims',json_build_object('sub',o,'is_anonymous',false)::text,true);
+ begin perform public.request_student_deletion(b,'DELETE'); raise exception 'Foreign request accepted'; exception when insufficient_privilege then null; end;
+ perform pg_temp.assert_request('another owner cannot request deletion',not exists(select 1 from public.student_deletion_requests where student_id=b));
+ begin perform public.request_student_deletion(a,''); raise exception 'Confirmation not enforced'; exception when invalid_parameter_value then null; end;
+ perform pg_temp.assert_request('confirmation required',not exists(select 1 from public.student_deletion_requests where student_id=a));
+ r:=public.request_student_deletion(a,'DELETE');
+ select delete_after into deadline from public.student_deletion_requests where id=r;
+ perform pg_temp.assert_request('30 day period recorded',deadline>=now()+interval '30 days');
+ perform pg_temp.assert_request('learner archived',exists(select 1 from public.students where id=a and archived_at is not null));
+ r2:=public.request_student_deletion(a,'DELETE');
+ perform pg_temp.assert_request('repeat request preserves original deadline',r=r2 and deadline=(select delete_after from public.student_deletion_requests where id=r));
+ begin perform private.finalize_student_deletion_request(r); raise exception 'Early completion accepted'; exception when invalid_parameter_value then null; end;
+ perform pg_temp.assert_request('early finalization preserves learner',exists(select 1 from public.students where id=a));
+ perform set_config('request.jwt.claims',json_build_object('sub',other_owner,'is_anonymous',false)::text,true);
+ begin perform public.cancel_student_deletion(r); raise exception 'Foreign cancellation accepted'; exception when insufficient_privilege then null; end;
+ execute 'set local role authenticated';
+ if exists(select 1 from public.student_deletion_requests where id=r) then raise exception 'Foreign request visible'; end if;
+ execute 'reset role';
+ perform pg_temp.assert_request('other educator cannot see or cancel request',true);
+ perform set_config('request.jwt.claims',json_build_object('sub',o,'is_anonymous',true)::text,true);
+ begin perform public.cancel_student_deletion(r); raise exception 'Anonymous cancellation accepted'; exception when insufficient_privilege then null; end;
+ perform pg_temp.assert_request('anonymous sign-in rejected',true);
+ perform set_config('request.jwt.claims',json_build_object('sub',o,'is_anonymous',false)::text,true);
+ execute 'set local role authenticated';
+ if not exists(select 1 from public.student_deletion_requests where id=r) then raise exception 'Own request hidden'; end if;
+ begin delete from public.student_deletion_requests where id=r; raise exception 'Direct delete allowed'; exception when insufficient_privilege then null; end;
+ execute 'reset role';
+ perform pg_temp.assert_request('owner can read but cannot directly delete history',true);
+ perform public.cancel_student_deletion(r);
+ perform pg_temp.assert_request('cancellation restores active learner',exists(select 1 from public.students where id=a and archived_at is null) and exists(select 1 from public.student_deletion_requests where id=r and status='cancelled'));
+ begin perform private.finalize_student_deletion_request(r); raise exception 'Cancelled completion accepted'; exception when invalid_parameter_value then null; end;
+ perform pg_temp.assert_request('cancelled request cannot complete',exists(select 1 from public.students where id=a));
+ r2:=public.request_student_deletion(a,'DELETE');
+ perform pg_temp.assert_request('new request after cancellation gets new history entry',r2<>r);
+ -- Move both timestamps for this fictional request only; production users have no update grant.
+ update public.student_deletion_requests set requested_at=now()-interval '31 days',delete_after=now()-interval '1 day' where id=r2;
+ begin perform public.cancel_student_deletion(r2); raise exception 'Late cancellation accepted'; exception when invalid_parameter_value then null; end;
+ perform pg_temp.assert_request('late cancellation rejected',true);
+ perform private.finalize_student_deletion_request(r2);
+ perform pg_temp.assert_request('due request completed and learner removed',not exists(select 1 from public.students where id=a) and exists(select 1 from public.student_deletion_requests where id=r2 and status='completed' and resolved_at is not null));
+ perform pg_temp.assert_request('completion retry is harmless',private.finalize_student_deletion_request(r2));
+ perform pg_temp.assert_request('other learner preserved',exists(select 1 from public.students where id=b and archived_at=arch));
+ perform set_config('request.jwt.claims',json_build_object('sub',other_owner,'is_anonymous',false)::text,true);
+ r:=public.request_student_deletion(b,'DELETE'); perform public.cancel_student_deletion(r);
+ perform pg_temp.assert_request('previously archived learner stays archived after cancellation',exists(select 1 from public.students where id=b and archived_at=arch));
+ perform pg_temp.assert_request('no public finalization access',not has_function_privilege('authenticated','private.finalize_student_deletion_request(uuid)','execute') and not has_function_privilege('anon','private.finalize_student_deletion_request(uuid)','execute'));
+end $$;
+select * from request_qa_results;
