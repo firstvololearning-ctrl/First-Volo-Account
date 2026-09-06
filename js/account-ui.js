@@ -266,7 +266,25 @@
       const confirmInput = document.getElementById("confirmPassword");
       const message = document.getElementById("passwordMessage");
       if (newInput.value !== confirmInput.value) { message.textContent = "Passwords do not match."; return; }
-      try { const result = await window.FirstVoloAccountAuth.updatePassword(newInput.value); if (result.error) throw result.error; message.textContent = "Password saved. You can use it the next time you sign in."; newInput.value = ""; confirmInput.value = ""; } catch (error) { newInput.value = ""; confirmInput.value = ""; if (await window.FirstVoloAccountAuth.handleSessionError(error)) { renderSignedOut("Your sign-in session has expired. Please sign in again."); return; } message.textContent = "The password could not be saved. Please try again."; }
+      try {
+        const result = await window.FirstVoloAccountAuth.updatePassword(newInput.value);
+        if (result.error) throw result.error;
+        message.textContent = "Password updated. ";
+        const returnLink = document.createElement("a");
+        returnLink.href = "index.html";
+        returnLink.textContent = "Return to My First Volo";
+        message.append(returnLink);
+        newInput.value = "";
+        confirmInput.value = "";
+      } catch (error) {
+        newInput.value = "";
+        confirmInput.value = "";
+        if (await window.FirstVoloAccountAuth.handleSessionError(error)) {
+          renderSignedOut("Your sign-in session has expired. Please sign in again.");
+          return;
+        }
+        message.textContent = "The password could not be saved. Please try again.";
+      }
     });
   }
 
