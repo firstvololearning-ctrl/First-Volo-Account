@@ -1,0 +1,3 @@
+import test from 'node:test';import assert from 'node:assert/strict';import {preparePrivacyEmail} from '../js/privacy-request.mjs';
+test('every supported request opens only the monitored mailbox',()=>{for(const kind of ['review','withdrawal','deletion','correction','question'])for(const product of ['story','primo','morphology','unsure']){const u=new URL(preparePrivacyEmail(kind,product));assert.equal(u.protocol,'mailto:');assert.equal(u.pathname,'privacy@firstvololearning.com');assert.match(u.searchParams.get('body'),/verify my authority/);}});
+test('arbitrary recipient, subject and product input are rejected',()=>{assert.throws(()=>preparePrivacyEmail('review\r\nBcc:other@example.invalid','primo'));assert.throws(()=>preparePrivacyEmail('review','__proto__'));});
