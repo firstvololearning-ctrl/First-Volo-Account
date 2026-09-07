@@ -16,7 +16,7 @@ export async function decryptPacket(packet,code,webcrypto=globalThis.crypto){
  const plain=await webcrypto.subtle.decrypt({name:'AES-GCM',iv,additionalData:aad,tagLength:128},key,combined);
  const report=JSON.parse(new TextDecoder().decode(plain));if(report.product!==packet.product)throw Error('Wrong product');return report;
 }
-if(typeof document!=='undefined'){
+if(typeof document!=='undefined'&&document.querySelector('#file')&&document.querySelector('#records')){
  const form=document.querySelector('form'),status=document.querySelector('#status'),output=document.querySelector('#records'),code=document.querySelector('#code');
  let generation=0;
  form.addEventListener('submit',async e=>{e.preventDefault();const current=++generation;output.textContent='';status.textContent='Opening records…';
