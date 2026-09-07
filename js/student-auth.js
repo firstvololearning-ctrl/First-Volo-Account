@@ -1,3 +1,4 @@
+// Consent-checked signup; backend release and anonymous signup remain disabled.
 (function () {
   "use strict";
 
@@ -35,7 +36,9 @@
     return { productKeys: (result.data || []).map(item => item.product_key), error: null };
   }
 
-  async function claimLogin(classCode, studentCode) {
+  let loginPending = false;
+  async function performClaimLogin(classCode, studentCode, product) {
+    let signupTicket;
     const existing = await getSession();
     if (existing.error) return { status: "unavailable", context: null };
     if (existing.session && !isAnonymousSession(existing.session)) return { status: "educator-session", context: null };
@@ -43,26 +46,42 @@
     // Check codes and current permission before creating an anonymous account.
     // The database repeats authorization when claiming and on product access.
     try {
-      const permission = await fetch("https://apkvvspubolyxlqtlkto.supabase.co/functions/v1/student-permission-check", {
+      const permission = await fetch("https://apkvvspubolyxlqtlkto.supabase.co/functions/v1/student-signup-ticket", {
         method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ classCode, studentCode }), signal: AbortSignal.timeout(15000),
+        body: JSON.stringify({ classCode, studentCode, product }), signal: AbortSignal.timeout(15000),
         cache: "no-store"
       });
-      if (!permission.ok || (await permission.json()).allowed !== true) return { status: "invalid-credentials", context: null };
+      if (permission.status === 503 || permission.status === 429) return { status: "unavailable", context: null };
+      const permit = await permission.json();
+      if (!permission.ok || permit.allowed !== true || !/^[a-f0-9]{64}$/.test(permit.ticket || "")) return { status: "invalid-credentials", context: null };
+      signupTicket = permit.ticket;
     } catch { return { status: "unavailable", context: null }; }
 
     if (isAnonymousSession(existing.session)) {
-      const current = await getStudentContext();
-      if (current.context) return { status: "signed-in", context: current.context };
-    } else {
-      const anonymousResult = await client.auth.signInAnonymously();
+      // A new code submission must never return a previous learner’s session.
+      const logout = await client.auth.signOut();
+      if (logout.error) return { status: "unavailable", context: null };
+    }
+    {
+      const anonymousResult = await client.auth.signInAnonymously({ options: { data: { signup_ticket: signupTicket } } });
       if (anonymousResult.error) return { status: isAnonymousProviderUnavailable(anonymousResult.error) ? "provider-unavailable" : "unavailable", context: null };
     }
 
-    const claim = await client.rpc("claim_student_login", { p_class_code: classCode, p_student_code: studentCode });
-    if (claim.error) return { status: "invalid-credentials", context: null };
-    const context = firstRow(claim.data);
-    return context ? { status: "signed-in", context } : { status: "invalid-credentials", context: null };
+    try {
+      const claim = await client.rpc("claim_student_login", { p_class_code: classCode, p_student_code: studentCode });
+      const context = firstRow(claim.data);
+      if (!claim.error && context) return { status: "signed-in", context };
+    } catch { /* A failed or uncertain claim must not leave a usable browser session. */ }
+    try { await client.auth.signOut({ scope: "local" }); } catch { /* Retry starts with a fresh permission check. */ }
+    return { status: "invalid-credentials", context: null };
+  }
+
+  async function claimLogin(classCode, studentCode, product) {
+    if (loginPending) return { status: "unavailable", context: null };
+    loginPending = true;
+    try { return await performClaimLogin(classCode, studentCode, product); }
+    catch { return { status: "unavailable", context: null }; }
+    finally { loginPending = false; }
   }
 
   async function signOut() {
