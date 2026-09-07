@@ -40,6 +40,17 @@
     if (existing.error) return { status: "unavailable", context: null };
     if (existing.session && !isAnonymousSession(existing.session)) return { status: "educator-session", context: null };
 
+    // Check codes and current permission before creating an anonymous account.
+    // The database repeats authorization when claiming and on product access.
+    try {
+      const permission = await fetch("https://apkvvspubolyxlqtlkto.supabase.co/functions/v1/student-permission-check", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ classCode, studentCode }), signal: AbortSignal.timeout(15000),
+        cache: "no-store"
+      });
+      if (!permission.ok || (await permission.json()).allowed !== true) return { status: "invalid-credentials", context: null };
+    } catch { return { status: "unavailable", context: null }; }
+
     if (isAnonymousSession(existing.session)) {
       const current = await getStudentContext();
       if (current.context) return { status: "signed-in", context: current.context };
