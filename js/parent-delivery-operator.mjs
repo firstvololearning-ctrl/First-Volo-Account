@@ -17,7 +17,18 @@ export function startOperatorDelivery(document,client){
  const by=id=>document.getElementById(id);let prepared=null,epoch=0,busy=false;
  const clear=()=>{epoch++;prepared=null;by('code').value='';by('preview').textContent='';by('packet').disabled=true;by('finish').disabled=true;by('complete').reset();};
  for(const id of ['request','recipient','evidence','authority'])by(id).addEventListener('input',clear);
- client?.auth.onAuthStateChange((event,session)=>{if(!session){clear();by('status').textContent='Sign in to the operator account.';}});
+ // Prepared plaintext and its key belong to the current operator session.
+ let sessionUserId=null;
+ client?.auth.onAuthStateChange((event,session)=>{
+  const nextUserId=session?.user?.id||null;
+  if(!nextUserId||nextUserId!==sessionUserId){
+   clear();
+   by('status').textContent=nextUserId?'Account changed. Verify the request and prepare records again.':'Sign in to the operator account.';
+  }
+  sessionUserId=nextUserId;
+ });
+ // Clear before a page can enter the browser's back/forward cache.
+ document.defaultView?.addEventListener('pagehide',clear);
  by('prepare').onsubmit=async e=>{e.preventDefault();if(busy)return;clear();busy=true;const current=epoch;
  try{if(!client||!by('authority').checked)throw Error();const {data,error}=await client.rpc('prepare_parent_review_delivery',{p_request:by('request').value.trim(),p_verified_email:by('recipient').value.trim(),p_authority_reference:by('evidence').value.trim()});
  if(error||current!==epoch)throw Error();const sealed=await encryptReview(data);if(current!==epoch)return;prepared={...sealed,requestId:data.requestId};by('code').value=sealed.code;by('preview').textContent=JSON.stringify(data.records,null,2);by('packet').disabled=false;by('finish').disabled=false;by('status').textContent=`Prepared for ${data.verifiedDeliveryEmail}. Review the records below. Nothing has been sent; the request remains open.`;
