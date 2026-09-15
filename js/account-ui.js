@@ -157,7 +157,7 @@
       ].filter(Boolean).join(" ");
       return `<article class="student-item"><div><h4>${escape(student.display_name)}</h4><p>${escape(student.class_name)}</p>${student.student_code_hint ? `<span class="login-status">Login created • ending ${escape(student.student_code_hint)}</span><span class="login-helper">Need another copy? Reset the login to create a new Student Code.</span>` : '<span class="login-status">Login not created</span>'}${detailedProgress}</div><div class="student-actions"><button class="button button-secondary" type="button" data-student-action="login" data-student-id="${escape(student.id)}">${student.student_code_hint ? "Reset login" : "Generate login"}</button><button class="text-button danger-text" type="button" data-student-action="revoke" data-student-id="${escape(student.id)}">Sign student out everywhere</button></div></article>`;
     }).join("") : '<p class="empty-state">No students yet.</p>';
-    const addForm = snapshot.classes.length ? `<form id="addStudentForm" class="compact-form"><label for="studentClass">Class</label><select id="studentClass" required>${options}</select><label for="studentName">Student nickname or label (not a real name)</label><p id="studentNamePrivacy" class="student-privacy-note"><strong>Protect student privacy:</strong> Use a made-up nickname or label, such as Owl 7. Do not enter real names, initials, school student IDs, email addresses, or birth dates. Keep any list linking labels to real students securely outside First Volo. This label is separate from the Student Code used to sign in.</p><input id="studentName" type="text" maxlength="120" autocomplete="off" aria-describedby="studentNamePrivacy" placeholder="Example: Owl 7" required><button class="button button-primary" type="submit">Add student</button><p id="addStudentMessage" class="form-message" role="status" aria-live="polite"></p></form>` : '<p class="empty-state">Create a class before adding students.</p>';
+    const addForm = snapshot.classes.length ? `<form id="addStudentForm" class="compact-form"><label for="studentClass">Class</label><select id="studentClass" required>${options}</select><p class="student-privacy-note">A learner code is generated automatically. Keep any link to a real student outside First Volo. Learning records remain unavailable until authorization is established.</p><button class="button button-primary" type="submit">Add student</button><p id="addStudentMessage" class="form-message" role="status" aria-live="polite"></p></form>` : '<p class="empty-state">Create a class before adding students.</p>';
     return `<section class="management-section" aria-labelledby="studentsHeading"><div class="section-heading"><div><h3 id="studentsHeading">My Students</h3><p>Create student identities and manage their First Volo sign-ins.</p></div></div>${renderStudentPrivacyGuide()}<div class="student-list">${rows}</div><details class="create-panel"><summary class="button button-secondary">Add student using a nickname or label</summary>${addForm}</details><p id="studentActionMessage" class="form-message" role="status" aria-live="polite"></p></section>`;
   }
 
@@ -224,12 +224,10 @@
 
     document.getElementById("addStudentForm")?.addEventListener("submit", async event => {
       event.preventDefault();
-      const nameInput = document.getElementById("studentName");
       const message = document.getElementById("addStudentMessage");
       message.textContent = "Adding student…";
-      const result = await client.rpc("create_student_in_class", { p_display_name: nameInput.value.trim(), p_class_id: document.getElementById("studentClass").value });
+      const result = await client.rpc("create_student_in_class", { p_display_name: "Generate learner code", p_class_id: document.getElementById("studentClass").value });
       if (result.error) { message.textContent = "The student could not be added. Please try again."; return; }
-      nameInput.value = "";
       await refreshSnapshot();
     });
 
