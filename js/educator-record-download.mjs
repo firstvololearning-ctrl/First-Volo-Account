@@ -1,4 +1,4 @@
-const products=new Set(['first-volo-story-builder','first-volo-morphology']);
+const products=new Set(['primo-volo','first-volo-story-builder','first-volo-morphology']);
 export async function prepareDownload(client,product,isCurrent=()=>true){
  if(!products.has(product))throw Error('Choose a product.');
  const {data,error}=await client.rpc('export_my_product_records',{p_product:product});
