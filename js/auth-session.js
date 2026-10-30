@@ -47,6 +47,17 @@
     return new URL("reset-password.html", window.location.href).href;
   }
 
+  async function signInWithGoogle() {
+    if (!client) throw state?.error || new Error("Auth unavailable");
+    return client.auth.signInWithOAuth({
+      provider: "google",
+      options: {
+        redirectTo: callbackUrl(window.FirstVoloAccountReturnTargets.requestedKey()),
+        queryParams: { prompt: "select_account" }
+      }
+    });
+  }
+
   async function signInWithPassword(email, password) {
     if (!client) throw state?.error || new Error("Auth unavailable");
     const result = await client.auth.signInWithPassword({ email, password });
@@ -89,7 +100,8 @@
     const message = document.getElementById("callbackMessage");
     const returnLink = document.querySelector(".callback-return");
     const hashParameters = new URLSearchParams(window.location.hash.replace(/^#/, ""));
-    const redirectError = hashParameters.get("error_code");
+    const queryParameters = new URLSearchParams(window.location.search);
+    const redirectError = hashParameters.get("error_code") || hashParameters.get("error") || queryParameters.get("error_code") || queryParameters.get("error");
     if (redirectError) {
       if (message) message.textContent = redirectError === "otp_expired"
         ? "This sign-in link is no longer valid. It may have expired or already been opened. Return to My First Volo and request a fresh link."
@@ -130,6 +142,7 @@
   window.FirstVoloAccountAuth = {
     ready: () => ready,
     getUser: () => user,
+    signInWithGoogle,
     signInWithPassword,
     sendEmailCode,
     verifyEmailCode,
