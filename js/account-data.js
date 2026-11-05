@@ -6,7 +6,7 @@
     {
       key: "first-volo-story-builder",
       label: "Story Builder",
-      description: "A structured story-building tool for developing narrative language through planning, storytelling, targeted support, revision, and retell.",
+      description: "Help learners build narrative language through their own stories. Use picture ideas to get a story started, then use focused questions and model sentences to teach one skill. Listen to the retell to hear how the learner puts your feedback into practice.",
       returnTarget: "storyBuilder",
       learnMoreUrl
     },
